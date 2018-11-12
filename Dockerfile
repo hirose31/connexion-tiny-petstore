@@ -9,8 +9,10 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . /usr/src/app
 
+ENV PYTHONPATH /usr/src/app
+
 EXPOSE 9090
 
 ENTRYPOINT ["python3"]
 
-CMD ["-m", "tiny_petstore"]
+CMD ["-m", "app.py"]

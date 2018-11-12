@@ -1,25 +1,24 @@
-import connexion
-import six
+import logging
+from connexion import NoContent
+from flask import abort
 
-from tiny_petstore.models.pet import Pet  # noqa: E501
-from tiny_petstore.models.pet_create_param import PetCreateParam  # noqa: E501
-from tiny_petstore.models.pet_param import PetParam  # noqa: E501
-from tiny_petstore import util
+from tiny_petstore.models.pet import Pet
+
+logger = logging.getLogger(__name__)
 
 
-def create_pet(create_order):  # noqa: E501
-    """Add a new pet to the store
+def create_pet(create_order=None):  # noqa: E501
+    """Add a new pet to the pet
 
      # noqa: E501
 
-    :param create_order: Pet object that needs to be added to the store
+    :param create_order: Pet object that needs to be added to the pet
     :type create_order: dict | bytes
 
     :rtype: Pet
     """
-    if connexion.request.is_json:
-        create_order = PetCreateParam.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    item = Pet.create_from_dict(create_order)
+    return item, 201
 
 
 def delete_pet(id):  # noqa: E501
@@ -32,7 +31,8 @@ def delete_pet(id):  # noqa: E501
 
     :rtype: None
     """
-    return 'do some magic!'
+    Pet.delete(id=id)
+    return NoContent, 204
 
 
 def fetch_all_pets():  # noqa: E501
@@ -43,7 +43,8 @@ def fetch_all_pets():  # noqa: E501
 
     :rtype: List[Pet]
     """
-    return 'do some magic!'
+    items = Pet.query(query_order=None)
+    return items
 
 
 def fetch_pet(id):  # noqa: E501
@@ -56,7 +57,11 @@ def fetch_pet(id):  # noqa: E501
 
     :rtype: Pet
     """
-    return 'do some magic!'
+    item = Pet.fetch(id=id)
+    if item is None:
+        abort(404, 'pet not found for id: %d' % id)
+    else:
+        return item
 
 
 def search_pets(search_order=None):  # noqa: E501
@@ -69,7 +74,8 @@ def search_pets(search_order=None):  # noqa: E501
 
     :rtype: List[Pet]
     """
-    return 'do some magic!'
+    items = Pet.query(query_order=search_order)
+    return items
 
 
 def update_pet(id, update_order):  # noqa: E501
@@ -84,6 +90,8 @@ def update_pet(id, update_order):  # noqa: E501
 
     :rtype: Pet
     """
-    if connexion.request.is_json:
-        update_order = PetParam.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    item = Pet.update(id=id, update_order=update_order)
+    if item is None:
+        abort(404, 'pet not found for id: %d' % id)
+    else:
+        return item

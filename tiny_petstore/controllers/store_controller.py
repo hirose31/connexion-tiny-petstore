@@ -1,13 +1,13 @@
-import connexion
-import six
+import logging
+from connexion import NoContent
+from flask import abort
 
-from tiny_petstore.models.store import Store  # noqa: E501
-from tiny_petstore.models.store_create_param import StoreCreateParam  # noqa: E501
-from tiny_petstore.models.store_param import StoreParam  # noqa: E501
-from tiny_petstore import util
+from tiny_petstore.models.store import Store
+
+logger = logging.getLogger(__name__)
 
 
-def create_store(create_order):  # noqa: E501
+def create_store(create_order=None):
     """Add a new store to the store
 
      # noqa: E501
@@ -17,9 +17,8 @@ def create_store(create_order):  # noqa: E501
 
     :rtype: Store
     """
-    if connexion.request.is_json:
-        create_order = StoreCreateParam.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    item = Store.create_from_dict(create_order)
+    return item, 201
 
 
 def delete_store(id):  # noqa: E501
@@ -32,7 +31,8 @@ def delete_store(id):  # noqa: E501
 
     :rtype: None
     """
-    return 'do some magic!'
+    Store.delete(id=id)
+    return NoContent, 204
 
 
 def fetch_all_stores():  # noqa: E501
@@ -43,7 +43,8 @@ def fetch_all_stores():  # noqa: E501
 
     :rtype: List[Store]
     """
-    return 'do some magic!'
+    items = Store.query(query_order=None)
+    return items
 
 
 def fetch_store(id):  # noqa: E501
@@ -56,7 +57,11 @@ def fetch_store(id):  # noqa: E501
 
     :rtype: Store
     """
-    return 'do some magic!'
+    item = Store.fetch(id=id)
+    if item is None:
+        abort(404, 'store not found for id: %d' % id)
+    else:
+        return item
 
 
 def search_stores(search_order=None):  # noqa: E501
@@ -69,7 +74,8 @@ def search_stores(search_order=None):  # noqa: E501
 
     :rtype: List[Store]
     """
-    return 'do some magic!'
+    items = Store.query(query_order=search_order)
+    return items
 
 
 def update_store(id, update_order):  # noqa: E501
@@ -84,6 +90,8 @@ def update_store(id, update_order):  # noqa: E501
 
     :rtype: Store
     """
-    if connexion.request.is_json:
-        update_order = StoreParam.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    item = Store.update(id=id, update_order=update_order)
+    if item is None:
+        abort(404, 'store not found for id: %d' % id)
+    else:
+        return item

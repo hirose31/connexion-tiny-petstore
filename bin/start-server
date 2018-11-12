@@ -1,0 +1,76 @@
+#!/bin/bash
+
+set -u
+export LANG="C"
+
+prog=${0##*/}
+bindir=${0%/*}
+
+project_root=$(readlink -f ${bindir}/..)
+appdir="${project_root}/tiny_petstore"
+
+die() { echo "[ABORT] $@"; exit 1; }
+
+usage() {
+  [[ "$@" ]] && echo "[error] $@" 1>&2
+  cat <<EOUSAGE
+[usage]
+  $prog [-v]
+    -v     verbose
+  $prog [-h?]
+    -h -?  help
+EOUSAGE
+  exit 2
+}
+
+verbose=
+vecho=:
+OPTIND_OLD=$OPTIND
+OPTIND=1
+while getopts "vh?" opt; do
+  case $opt in
+    v)
+      verbose=y
+      vecho='echo VERBO:'
+      ;;
+    ?|h)
+      usage
+      ;;
+  esac
+done
+shift $(($OPTIND - 1))
+OPTIND=$OPTIND_OLD
+
+function main {
+  MY_PYTHONPATH=""
+
+  logfile="${project_root}/var/server.log"
+  exec 1> >(tee $logfile) 2>&1
+
+  # PYTHONPATH must contain project_root
+  # https://github.com/pallets/werkzeug/issues/461
+  cd "${project_root}" && \
+    exec env \
+         FLASK_ENV=development \
+         FLASK_DEBUG=1 \
+         PYTHONPATH="${project_root}:${project_root}/lib${MY_PYTHONPATH:+:${MY_PYTHONPATH}}" \
+         python3 -u app.py
+
+  die 'failed to start the server'
+
+  return 0;
+}
+
+main "$@" && exit 0 || exit 1
+
+# for Emacsen
+# Local Variables:
+# mode: sh
+# sh-basic-offset: 2
+# sh-indentation: 2
+# tab-width: 2
+# indent-tabs-mode: nil
+# coding: utf-8
+# End:
+
+# vi: set ts=2 sw=2 sts=0 et ft=sh fenc=utf-8 ff=unix :
