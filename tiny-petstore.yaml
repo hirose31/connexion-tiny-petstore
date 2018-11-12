@@ -1,0 +1,489 @@
+swagger: '2.0'
+info:
+  description: |
+    This is a yet another example pet store API server using [Connexion](https://github.com/zalando/connexion) .
+
+    - [Repository](https://github.com/hirose31/connexion-tiny-petstore)
+
+    # search resource expression
+
+    ## examples
+
+    ```jsonc
+    // WHERE name = 'foo' AND age > 20
+    {
+        "name": "foo",
+        "age": {">": 20}
+    }
+    ```
+
+    ```jsonc
+    // WHERE addresses.email like "%@example.org"
+    {
+        "addresses.email": {"like": "%@example.org"}
+    }
+    ```
+
+    ```jsonc
+    // WHERE age >= 6 AND age <= 12
+    {
+        "age": ["and", {">=": 6}, {"<=": 12}]
+    }
+    ```
+
+    ## rules
+
+    ```
+    // FILTER
+    {
+        ATTR: EXPR,
+        ATTR: EXPR,
+        ...
+    }
+    ```
+
+    ```
+    // ATTR
+    column_name
+    joined_table.column_name
+    ```
+
+    ```
+    // EXPR
+    // comparison expr
+    { OP: VALUE }
+    { OP: [VALUE, VALUE, ...] }
+    VALUE # shorthand for { "==": VALUE }
+    
+    // boolean expr
+    ["or", EXPR, EXPR, ...]
+    ["and", EXPR, EXPR, ...]
+    ```
+
+    ```
+    // OP
+    ==
+    !=
+    in
+    !in
+    >
+    >=
+    <
+    <=
+    like
+    !like
+    ```
+
+  version: 2.0.0
+  title: Tiny Pet Store
+  contact:
+    email: hirose31@gmail.com
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/mit-license.php'
+basePath: /v2
+tags:
+  - name: pet
+    description: Everything about your Pets
+  - name: store
+    description: Access to Pet store
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /pets:
+    get:
+      tags:
+        - pet
+      summary: Returns pets
+      description: |
+        Returns all pets.
+      operationId: fetchAllPets
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Pet'
+    post:
+      tags:
+        - pet
+      summary: Add a new pet to the store
+      description: ''
+      operationId: createPet
+      parameters:
+        - name: create_order
+          in: body
+          description: Pet object that needs to be added to the store
+          required: true
+          schema:
+            $ref: '#/definitions/PetCreateParam'
+      responses:
+        '201':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Pet'
+        '400':
+          description: Bad Request
+  '/pets/{id}':
+    get:
+      tags:
+        - pet
+      summary: Find pet by ID
+      description: Returns a single pet
+      operationId: fetchPet
+      parameters:
+        - name: id
+          in: path
+          description: ID of pet to return
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Pet'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Pet not found
+    patch:
+      tags:
+        - pet
+      summary: Updates a pet
+      description: ''
+      operationId: updatePet
+      parameters:
+        - name: id
+          in: path
+          description: ID of pet that needs to be updated
+          required: true
+          type: integer
+          format: int64
+        - name: update_order
+          in: body
+          required: true
+          x-nullable: false
+          schema:
+            $ref: '#/definitions/PetParam'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Pet'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - pet
+      summary: Deletes a pet
+      description: ''
+      operationId: deletePet
+      parameters:
+        - name: id
+          in: path
+          description: Pet id to delete
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: successful operation
+        '400':
+          description: Invalid pet value
+  /search/pets:
+    post:
+      tags:
+        - pet
+      summary: Returns pets matched search conditions
+      description: |
+        Returns pets which matched by search conditions.
+      operationId: searchPets
+      parameters:
+        - $ref: '#/parameters/SearchPets'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Pet'
+
+  /stores:
+    get:
+      tags:
+        - store
+      summary: Returns stores
+      description: |
+        Returns all stores.
+      operationId: fetchAllStores
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Store'
+    post:
+      tags:
+        - store
+      summary: Add a new store to the store
+      description: ''
+      operationId: createStore
+      parameters:
+        - name: create_order
+          in: body
+          description: Store object that needs to be added to the store
+          required: true
+          schema:
+            $ref: '#/definitions/StoreCreateParam'
+      responses:
+        '201':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Store'
+        '400':
+          description: Bad Request
+  '/stores/{id}':
+    get:
+      tags:
+        - store
+      summary: Find store by ID
+      description: Returns a single store
+      operationId: fetchStore
+      parameters:
+        - name: id
+          in: path
+          description: ID of store to return
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Store'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Store not found
+    patch:
+      tags:
+        - store
+      summary: Updates a store
+      description: ''
+      operationId: updateStore
+      parameters:
+        - name: id
+          in: path
+          description: ID of store that needs to be updated
+          required: true
+          type: integer
+          format: int64
+        - name: update_order
+          in: body
+          required: true
+          x-nullable: false
+          schema:
+            $ref: '#/definitions/StoreParam'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Store'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - store
+      summary: Deletes a store
+      description: ''
+      operationId: deleteStore
+      parameters:
+        - name: id
+          in: path
+          description: Store id to delete
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '204':
+          description: successful operation
+        '400':
+          description: Invalid store value
+  /search/stores:
+    post:
+      tags:
+        - store
+      summary: Returns stores matched search conditions
+      description: |
+        Returns stores which matched by search conditions.
+      operationId: searchStores
+      parameters:
+        - $ref: '#/parameters/SearchStores'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Store'
+
+parameters:
+  SearchPets:
+    name: search_order
+    in: body
+    required: false
+    x-nullable: true
+    schema:
+      type: object
+      example:
+        store.name:
+          "like": "%Pet%"
+        status:
+          "in": ["pending", "sold"]
+  SearchStores:
+    name: search_order
+    in: body
+    required: false
+    x-nullable: true
+    schema:
+      type: object
+      example:
+        name:
+          "like": "%Pet%"
+        address:
+          "==": "Tokyo"
+
+definitions:
+  Pet:
+    title: Pet
+    description: A pet for sale in the pet store
+    type: object
+    required:
+      - name
+      - store
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: tama
+      store:
+        $ref: '#/definitions/Store'
+      status:
+        type: string
+        description: pet status in the store
+        default: pending
+        enum:
+          - available
+          - pending
+          - sold
+  PetCreateParam:
+    title: _petCreateParam
+    type: object
+    required:
+      - name
+      - store.name
+    properties:
+      name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: tama
+      store.name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: Pets Unlimited
+      status:
+        type: string
+        enum:
+          - available
+          - pending
+          - sold
+    example:
+      name: mike
+      store.name: The Pet Mansion
+      status: available
+  PetParam:
+    title: _petParam
+    type: object
+    properties:
+      name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: tama
+      store.name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: Pets Unlimited
+      status:
+        type: string
+        enum:
+          - available
+          - pending
+          - sold
+    example:
+      name: mike
+      store.name: The Pet Mansion
+      status: available
+
+  Store:
+    title: Store
+    description: A pet store
+    type: object
+    required:
+      - name
+      - address
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: Pets Unlimited
+      address:
+        type: string
+        example: Tokyo
+  StoreCreateParam:
+    title: _storeCreateParam
+    type: object
+    required:
+      - name
+      - address
+    properties:
+      name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: Pets Unlimited
+      address:
+        type: string
+        example: Tokyo
+    example:
+      name: The Pet Mansion
+      address: Tokyo
+  StoreParam:
+    title: _storeParam
+    type: object
+    properties:
+      name:
+        type: string
+        pattern: '^[A-Za-z0-9]'
+        example: Pets Unlimited
+      address:
+        type: string
+        example: Tokyo
+    example:
+      name: The Pet Mansion
