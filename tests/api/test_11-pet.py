@@ -174,3 +174,63 @@ class TestPet:
 
         assert res.status_int == 204
         assert res.text == ''
+
+    def test_search(self, testapp):
+        res = testapp.post_json('/v2/search/pets', {
+            'name': 'mike',
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'mike'}
+
+        res = testapp.post_json('/v2/search/pets', {
+            'name': 'pochi',
+        })
+        data = res.json
+
+        assert len(data) == 0
+
+        res = testapp.post_json('/v2/search/pets', {
+            'name': {'like': '%i%'},
+        })
+        data = res.json
+
+        assert len(data) == 2
+        assert set_of('name', data) == {'mike', 'chibi'}
+
+        res = testapp.post_json('/v2/search/pets', {
+            'name': {'like': '%i%'},
+            'status': {'==': 'sold'},
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'chibi'}
+
+        res = testapp.post_json('/v2/search/pets', {
+            'name': {'like': '%i%'},
+            'status': {'==': 'sold'},
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'chibi'}
+
+        # by store
+        res = testapp.post_json('/v2/search/pets', {
+            'store.name': 'Pets Unlimited',
+        })
+        data = res.json
+
+        assert len(data) == 2
+        assert set_of('name', data) == {'tama', 'mike'}
+
+        # error
+        res = testapp.post_json('/v2/search/pets', {
+            'blah': 'blah',
+        },
+            expect_errors=True,
+        )
+
+        assert res.status_int == 400

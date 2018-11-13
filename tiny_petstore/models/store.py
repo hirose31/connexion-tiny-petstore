@@ -42,7 +42,7 @@ class Store():
             return orm.Store.query.all()
         else:
             try:
-                query = orm.Store.query
+                query = orm.Store.query.join(orm.Pet, isouter=True)
 
                 return querybuilder(query, query_order).all()
             except (KeyError, ValueError, AttributeError) as ex:

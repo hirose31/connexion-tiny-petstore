@@ -48,6 +48,7 @@ def db(app):
 def setup_initial_data(db):
     s1 = orm.Store(name='Pets Unlimited', address='Shibuya')
     s2 = orm.Store(name='The Pet Mansion', address='Nerima')
+    s3 = orm.Store(name='Nothing One', address='Minato')
 
     tama = orm.Pet(name='tama', status='avaiable')
     mike = orm.Pet(name='mike', status='pending')
@@ -56,5 +57,5 @@ def setup_initial_data(db):
     s1.pets = [tama, mike]
     s2.pets = [chibi]
 
-    db.session.add_all([s1, s2])
+    db.session.add_all([s1, s2, s3])
     db.session.commit()

@@ -10,8 +10,8 @@ class TestStore:
         res = testapp.get('/v2/stores')
         data = res.json
 
-        assert len(data) == 2
-        assert set_of('name', data) == {'Pets Unlimited', 'The Pet Mansion'}
+        assert len(data) == 3
+        assert set_of('name', data) == {'Pets Unlimited', 'The Pet Mansion', 'Nothing One'}
 
     def test_create(self, testapp):
         res = testapp.post_json('/v2/stores', {
@@ -146,3 +146,52 @@ class TestStore:
 
         assert res.status_int == 400
         assert re.search(r'^store .+ has pets$', data['detail'])
+
+    def test_search(self, testapp):
+        res = testapp.post_json('/v2/search/stores', {
+            'address': 'Shibuya',
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'Pets Unlimited'}
+
+        res = testapp.post_json('/v2/search/stores', {
+            'address': 'Saitama',
+        })
+        data = res.json
+
+        assert len(data) == 0
+
+        res = testapp.post_json('/v2/search/stores', {
+            'address': {'like': '%i%'},
+        })
+        data = res.json
+
+        assert len(data) == 3
+
+        res = testapp.post_json('/v2/search/stores', {
+            'address': {'like': '%a'},
+        })
+        data = res.json
+
+        assert len(data) == 2
+        assert set_of('name', data) == {'Pets Unlimited', 'The Pet Mansion'}
+
+        res = testapp.post_json('/v2/search/stores', {
+            'name': {'like': '%Mansion%'},
+            'address': {'like': '%a'},
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'The Pet Mansion'}
+
+        # error
+        res = testapp.post_json('/v2/search/stores', {
+            'blah': 'blah',
+        },
+            expect_errors=True,
+        )
+
+        assert res.status_int == 400
