@@ -4,11 +4,12 @@
 
 This example application implement a very basic "Pet Store" REST service using the [Connexion](https://github.com/zalando/connexion).
 
-Connexion is a framework that automagically handles HTTP requests based on [OpenAPI Specification](https://www.openapis.org/) (formerly known as Swagger Spec) of your API described in YAML format. 
+Connexion is a framework that automagically handles HTTP requests based on [OpenAPI Specification](https://www.openapis.org/) of your API described in YAML format. 
 
 This example application uses the following modules and has features.
 
-- [Connexion](https://github.com/zalando/connexion) < 2.0.0
+- OpenAPI 3.0
+- [Connexion](https://github.com/zalando/connexion) >= 2.0.0
 - [SQLAlchemy](https://www.sqlalchemy.org/) ORM, [SQLAlchemy-Utils](https://github.com/kvesteri/sqlalchemy-utils), [Flask-Alchemy](http://github.com/mitsuhiko/flask-sqlalchemy), [sqlathanor](https://sqlathanor.readthedocs.io/en/latest)
     - one-to-many relationship (store and pets)
     - automatically encode ORM objects to JSON using sqlathanor
@@ -23,7 +24,7 @@ Python 3.5.2+
 ## Files
 
 - controllers/
-    - controller functions mapped using `operationId` in `swagger.yaml`
+    - controller functions mapped using `operationId` in `openapi.yaml`
     - simply call model methods
 - models/
     - staticmethods implement business logic using ORMs
@@ -45,13 +46,13 @@ python3 app.py
 and open your browser to here:
 
 ```
-http://localhost:9090/v2/ui/
+http://localhost:9090/v3/ui/
 ```
 
-Your Swagger definition lives here:
+Your OpenAPI definition lives here:
 
 ```
-http://localhost:9090/v2/swagger.json
+http://localhost:9090/v3/openapi.json
 ```
 
 To launch the integration tests, use tox:

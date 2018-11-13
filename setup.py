@@ -41,13 +41,17 @@ setup(
                  "Programming Language :: Python :: 3.7",
     ],
 
-    keywords=["Swagger", "Swagger Petstore", "Connexion"],
+    keywords=["OpenAPI", "OpenAPI Petstore", "Connexion"],
 
     packages=find_packages(exclude=['etc', 'var', 'junk']),
-    package_data={'': ['swagger/swagger.yaml']},
+    package_data={'': ['openapi/openapi.yaml']},
     include_package_data=True,
 
-    install_requires=['connexion'],
+    install_requires=[
+        "connexion>=2.0.0",
+        "swagger-ui-bundle>=0.0.2",
+        "python_dateutil==2.6.0",
+    ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
 )

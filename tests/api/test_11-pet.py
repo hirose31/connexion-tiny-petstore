@@ -7,14 +7,14 @@ from utils import set_of
 
 class TestPet:
     def test_fetch_all(self, testapp):
-        res = testapp.get('/v2/pets')
+        res = testapp.get('/v3/pets')
         data = res.json
 
         assert len(data) == 3
         assert set_of('name', data) == {'tama', 'mike', 'chibi'}
 
     def test_create(self, testapp):
-        res = testapp.post_json('/v2/pets', {
+        res = testapp.post_json('/v3/pets', {
             'name': 'azuki',
             'store.name': 'Pets Unlimited',
             'status': 'available',
@@ -27,7 +27,7 @@ class TestPet:
         assert data['status'] == 'available'
 
         # status default is pending
-        res = testapp.post_json('/v2/pets', {
+        res = testapp.post_json('/v3/pets', {
             'name': 'kotetsu',
             'store.name': 'Pets Unlimited',
         })
@@ -40,7 +40,7 @@ class TestPet:
 
         # error
         # missing required param
-        res = testapp.post_json('/v2/pets', {
+        res = testapp.post_json('/v3/pets', {
             'name': 'cheshire',
         },
             expect_errors=True,
@@ -49,7 +49,7 @@ class TestPet:
         assert res.status_int == 400
 
         # invalid character
-        res = testapp.post_json('/v2/pets', {
+        res = testapp.post_json('/v3/pets', {
             'name': '!cheshire',
             'store.name': 'Pets Unlimited',
         },
@@ -59,7 +59,7 @@ class TestPet:
         assert res.status_int == 400
 
         # same name
-        res = testapp.post_json('/v2/pets', {
+        res = testapp.post_json('/v3/pets', {
             'name': 'azuki',
             'store.name': 'Pets Unlimited',
         },
@@ -71,7 +71,7 @@ class TestPet:
         assert data['detail'] == 'pet azuki already exists'
 
     def test_fetch(self, testapp):
-        res = testapp.get('/v2/pets/%d' % 1)
+        res = testapp.get('/v3/pets/%d' % 1)
         data = res.json
 
         assert res.status_int == 200
@@ -80,7 +80,7 @@ class TestPet:
 
         # error
         # not found
-        res = testapp.get('/v2/pets/%d' % 99,
+        res = testapp.get('/v3/pets/%d' % 99,
                           expect_errors=True,
                           )
         data = res.json
@@ -89,7 +89,7 @@ class TestPet:
 
     def test_update(self, testapp):
         new_name = 'azuki'
-        res = testapp.patch_json('/v2/pets/1', {
+        res = testapp.patch_json('/v3/pets/1', {
             'name': new_name,
             'store.name': 'The Pet Mansion',
         })
@@ -98,14 +98,14 @@ class TestPet:
         assert res.status_int == 200
         assert isinstance(data, dict)
 
-        res = testapp.get('/v2/pets/1')
+        res = testapp.get('/v3/pets/1')
         data = res.json
         assert data['name'] == 'azuki'
         assert data['store']['name'] == 'The Pet Mansion'
 
         # error
         # invalid character
-        res = testapp.patch_json('/v2/pets/1', {
+        res = testapp.patch_json('/v3/pets/1', {
             'name': '!cheshire',
         },
             expect_errors=True,
@@ -115,7 +115,7 @@ class TestPet:
         assert res.status_int == 400
 
         # not found
-        res = testapp.patch_json('/v2/pets/31', {
+        res = testapp.patch_json('/v3/pets/31', {
             'name': 'cheshire',
         },
             expect_errors=True,
@@ -124,7 +124,7 @@ class TestPet:
         assert res.status_int == 404
 
         # store not found
-        res = testapp.patch_json('/v2/pets/1', {
+        res = testapp.patch_json('/v3/pets/1', {
             'store.name': 'oops',
         },
             expect_errors=True,
@@ -135,7 +135,7 @@ class TestPet:
         assert data['detail'] == 'store oops does not exist'
 
         # unknown status
-        res = testapp.patch_json('/v2/pets/1', {
+        res = testapp.patch_json('/v3/pets/1', {
             'status': 'oops',
         },
             expect_errors=True,
@@ -147,7 +147,7 @@ class TestPet:
 
     def test_delete(self, testapp):
         # create to delete
-        res = testapp.post_json('/v2/pets', {
+        res = testapp.post_json('/v3/pets', {
             'name': 'cheshire',
             'store.name': 'Pets Unlimited',
         })
@@ -157,20 +157,80 @@ class TestPet:
         pet_id = data['id']
 
         # delete
-        res = testapp.delete('/v2/pets/%d' % pet_id)
+        res = testapp.delete('/v3/pets/%d' % pet_id)
 
         assert res.status_int == 204
         assert res.text == ''
 
         # check
-        res = testapp.get('/v2/pets/%d' % pet_id,
+        res = testapp.get('/v3/pets/%d' % pet_id,
                           expect_errors=True,
                           )
 
         assert res.status_int == 404
 
         # delete again
-        res = testapp.delete('/v2/pets/%d' % pet_id)
+        res = testapp.delete('/v3/pets/%d' % pet_id)
 
         assert res.status_int == 204
         assert res.text == ''
+
+    def test_search(self, testapp):
+        res = testapp.post_json('/v3/search/pets', {
+            'name': 'mike',
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'mike'}
+
+        res = testapp.post_json('/v3/search/pets', {
+            'name': 'pochi',
+        })
+        data = res.json
+
+        assert len(data) == 0
+
+        res = testapp.post_json('/v3/search/pets', {
+            'name': {'like': '%i%'},
+        })
+        data = res.json
+
+        assert len(data) == 2
+        assert set_of('name', data) == {'mike', 'chibi'}
+
+        res = testapp.post_json('/v3/search/pets', {
+            'name': {'like': '%i%'},
+            'status': {'==': 'sold'},
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'chibi'}
+
+        res = testapp.post_json('/v3/search/pets', {
+            'name': {'like': '%i%'},
+            'status': {'==': 'sold'},
+        })
+        data = res.json
+
+        assert len(data) == 1
+        assert set_of('name', data) == {'chibi'}
+
+        # by store
+        res = testapp.post_json('/v3/search/pets', {
+            'store.name': 'Pets Unlimited',
+        })
+        data = res.json
+
+        assert len(data) == 2
+        assert set_of('name', data) == {'tama', 'mike'}
+
+        # error
+        res = testapp.post_json('/v3/search/pets', {
+            'blah': 'blah',
+        },
+            expect_errors=True,
+        )
+
+        assert res.status_int == 400
