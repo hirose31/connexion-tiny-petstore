@@ -28,3 +28,6 @@ spec: ## generate only spec
 	  $(APPDIR)/models/*_{core,new,update,ref}.py \
 	;
 	-@rm -fr $(APPDIR)/test/
+
+version: ## update version string for several files
+	@./bin/update-version

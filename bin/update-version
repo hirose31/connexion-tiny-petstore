@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from pathlib import Path
+import yaml
+import json
+import re
+
+
+SPEC_FILE = 'tiny-petstore.yaml'
+CODEGEN_CONFIG = 'etc/codegen-config.json'
+APP_VERSION = 'tiny_petstore/__init__.py'
+
+
+def main():
+    project_root = Path(__file__).resolve().parent.parent
+
+    with open(project_root / SPEC_FILE, 'r') as f:
+        spec = yaml.load(f)
+    version = spec['info']['version']
+    print('version %s (read from %s)' % (version, SPEC_FILE))
+
+    # CODEGEN_CONFIG
+    with open(project_root / CODEGEN_CONFIG, 'r') as f:
+        codegen_config = json.load(f)
+
+    print('%s: ' % CODEGEN_CONFIG, end='')
+
+    if codegen_config['packageVersion'] == version:
+        print('up to date')
+    else:
+        codegen_config['packageVersion'] = version
+        with open(project_root / CODEGEN_CONFIG, 'w') as f:
+            json.dump(codegen_config, f, sort_keys=True, indent=2, separators=(',', ': '))
+            f.write("\n")
+        print('updated')
+
+    # APP_VERSION
+    version_re = re.compile(r".*__version__ = '(.*?)'", re.S)
+    with open(project_root / APP_VERSION, 'r') as f:
+        for line in f:
+            matched = version_re.match(line)
+            if matched:
+                app_version = matched.group(1)
+
+    print('%s: ' % APP_VERSION, end='')
+
+    if app_version == version:
+        print('up to date')
+    else:
+        lines = []
+        with open(project_root / APP_VERSION, 'r') as f:
+            for line in f:
+                if version_re.match(line):
+                    line = "__version__ = '%s'\n" % version
+                lines.append(line)
+        with open(project_root / APP_VERSION, 'w') as f:
+            f.writelines(lines)
+        print('updated')
+
+
+if __name__ == '__main__':
+    main()

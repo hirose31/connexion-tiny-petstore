@@ -1,5 +1,5 @@
 {
   "packageName": "tiny_petstore",
-  "packageVersion": "2.0.0",
+  "packageVersion": "3.0.0",
   "serverPort": "9090"
 }
