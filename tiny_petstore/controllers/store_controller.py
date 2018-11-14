@@ -1,4 +1,5 @@
 import logging
+import connexion
 from connexion import NoContent
 from flask import abort
 
@@ -7,7 +8,7 @@ from tiny_petstore.models.store import Store
 logger = logging.getLogger(__name__)
 
 
-def create_store(create_order=None):
+def create_store():
     """Add a new store to the store
 
      # noqa: E501
@@ -17,6 +18,7 @@ def create_store(create_order=None):
 
     :rtype: Store
     """
+    create_order = connexion.request.get_json()
     item = Store.create_from_dict(create_order)
     return item, 201
 
@@ -64,7 +66,7 @@ def fetch_store(id):  # noqa: E501
         return item
 
 
-def search_stores(search_order=None):  # noqa: E501
+def search_stores():  # noqa: E501
     """Returns stores matched search conditions
 
     Returns stores which matched by search conditions.  # noqa: E501
@@ -74,11 +76,12 @@ def search_stores(search_order=None):  # noqa: E501
 
     :rtype: List[Store]
     """
+    search_order = connexion.request.get_json()
     items = Store.query(query_order=search_order)
     return items
 
 
-def update_store(id, update_order):  # noqa: E501
+def update_store(id):  # noqa: E501
     """Updates a store
 
      # noqa: E501
@@ -90,6 +93,7 @@ def update_store(id, update_order):  # noqa: E501
 
     :rtype: Store
     """
+    update_order = connexion.request.get_json()
     item = Store.update(id=id, update_order=update_order)
     if item is None:
         abort(404, 'store not found for id: %d' % id)

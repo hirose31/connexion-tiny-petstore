@@ -11,10 +11,10 @@ from tiny_petstore.extensions import db
 def create_app(config_object=ProdConfig):
     logging.basicConfig(level=logging.DEBUG)
 
-    app = connexion.App(__name__, specification_dir='./swagger/')
+    app = connexion.App(__name__, specification_dir='./openapi/')
     app.app.json_encoder = encoder.JSONEncoder
     app.app.config.from_object(config_object)
-    app.add_api('swagger.yaml')
+    app.add_api('openapi.yaml')
 
     register_extensions(app)
     register_errorhandlers(app)

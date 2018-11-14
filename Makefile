@@ -7,16 +7,16 @@ help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 codegen: ## generate code
-	@swagger-codegen-cli generate \
-	  -l python-flask \
+	@openapi-generator-cli generate \
+	  -g python-flask \
 	  -c etc/codegen-config.json \
 	  -i tiny-petstore.yaml \
 	  -o $(PROJECT_ROOT)
 
 spec: ## generate only spec
-	@$(RM) $(APPDIR)/swagger/swagger.yaml
-	@swagger-codegen-cli generate \
-	  -l python-flask \
+	@$(RM) $(APPDIR)/openapi/openapi.yaml
+	@openapi-generator-cli generate \
+	  -g python-flask \
 	  -c etc/codegen-config.json \
 	  -i tiny-petstore.yaml \
 	  -o $(PROJECT_ROOT) \
@@ -25,5 +25,6 @@ spec: ## generate only spec
 	-@$(RM) $(APPDIR)/__main__.py \
 	  $(APPDIR)/models/base_model_.py \
 	  $(APPDIR)/models/*_param.py \
+	  $(APPDIR)/models/*_{core,new,update,ref}.py \
 	;
 	-@rm -fr $(APPDIR)/test/

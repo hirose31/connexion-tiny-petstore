@@ -42,8 +42,6 @@ shift $(($OPTIND - 1))
 OPTIND=$OPTIND_OLD
 
 function main {
-  MY_PYTHONPATH=""
-
   logfile="${project_root}/var/server.log"
   exec 1> >(tee $logfile) 2>&1
 
